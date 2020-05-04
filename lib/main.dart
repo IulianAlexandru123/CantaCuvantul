@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'playerspage.dart';
 import 'package:gradient_widgets/gradient_widgets.dart';
+import 'backgroundGradient.dart';
 
 void main() => runApp(MyApp());
 
@@ -67,24 +68,7 @@ class StartPage extends StatelessWidget {
       ),
       body: Stack(
         children: <Widget>[
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [
-                  0,
-                  0.5,
-                  1,
-                ],
-                colors: [
-                  Color(0xFF004C95),
-                  Color(0xFF7807B9),
-                  Color(0xFF590063),
-                ],
-              ),
-            ),
-          ),
+          BackgroundGradient(),
           SvgPicture.asset('assets/StartPage.svg'),
           SafeArea(
             child: Padding(
