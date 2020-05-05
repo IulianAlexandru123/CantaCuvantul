@@ -1,6 +1,7 @@
 import 'dart:math';
+import 'package:canta_cuvantul/playerpoints.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
+import 'popup_menu.dart';
 import 'Backend/Database_model.dart';
 import 'package:flutter/material.dart';
 import 'backgroundGradient.dart';
@@ -12,12 +13,15 @@ class WordsPage extends StatefulWidget {
 }
 
 class _WordsPageState extends State<WordsPage> {
+  PopupMenu menu;
+
+  GlobalKey btnKey = GlobalKey();
   int rmd = Random().nextInt(3) + 1;
   int _counter = 1;
-  String artist = '???';
-  String year = '???';
-  int current = 30;
-  int start = 30;
+  String artist = '';
+  String year = '';
+  int current = 10;
+  int start = 10;
   int pressed = 0;
   void startTimer() {
     CountdownTimer countDownTimer = new CountdownTimer(
@@ -26,6 +30,7 @@ class _WordsPageState extends State<WordsPage> {
     );
 
     var sub = countDownTimer.listen(null);
+
     sub.onData((duration) {
       setState(() {
         current = start - duration.elapsed.inSeconds;
@@ -34,15 +39,42 @@ class _WordsPageState extends State<WordsPage> {
     sub.onDone(() {
       print("Done");
       setState(() {
-        resetTimer();
+        return showDialog<void>(
+          context: context,
+          barrierDismissible: false, // user must tap button!
+          builder: (BuildContext context) {
+            return AlertDialog(
+              backgroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              title: Text(
+                'Timpul s-a terminat',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text(
+                    'Mergi la pagina urmatoare',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        //color: Colors.white,
+                        ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => PlayerPoints()),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
       });
     });
-  }
-
-  void resetTimer() {
-    start = 30;
-    current = 30;
-    startTimer();
   }
 
   void moreSeconds() {
@@ -78,10 +110,37 @@ class _WordsPageState extends State<WordsPage> {
   @override
   void initState() {
     super.initState();
-    // startTimer();
+    startTimer();
   }
 
+  void stateChanged(bool isShow) {
+    print('menu is ${isShow ? 'showing' : 'closed'}');
+  }
+
+  var isVisible1 = false;
+  var isVisible2 = false;
+  void onClickMenu(MenuItemProvider item) {
+    print('Click menu -> ${item.menuTitle}');
+    if (item.menuTitle == 'An lansare')
+      setState(() {
+        isVisible1 = true;
+      });
+    if (item.menuTitle == 'Artist')
+      setState(() {
+        isVisible2 = true;
+      });
+  }
+
+  void onDismiss() {
+    print('Menu is dismiss');
+  }
+
+  var colorCurrent = Colors.white;
+  @override
   Widget build(BuildContext context) {
+    PopupMenu.context = context;
+    if (current <= 3) colorCurrent = Colors.red;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: FutureBuilder<List>(
@@ -90,11 +149,34 @@ class _WordsPageState extends State<WordsPage> {
         builder: (context, snapshot) {
           var post = snapshot.data[0].row[2];
           int lung = post.length;
+          artist = snapshot.data[1].row[2];
+          year = snapshot.data[1].row[3].toString();
           if (snapshot.hasData) {
             return Scaffold(
               body: Stack(
                 children: <Widget>[
                   BackgroundGradientBlue(),
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: <Widget>[
+                          Text(
+                            '100',
+                            style: TextStyle(
+                              fontFamily: 'Rubik',
+                              fontSize: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          SvgPicture.asset('assets/coin.svg'),
+                        ],
+                      ),
+                    ),
+                  ),
                   SafeArea(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -147,7 +229,7 @@ class _WordsPageState extends State<WordsPage> {
                           ],
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 100),
+                          padding: const EdgeInsets.only(bottom: 60),
                           child: Stack(
                             alignment: Alignment.center,
                             children: <Widget>[
@@ -157,7 +239,7 @@ class _WordsPageState extends State<WordsPage> {
                                     '$current',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: colorCurrent,
                                       fontFamily: 'Rubik',
                                       fontSize: 80,
                                     ),
@@ -166,7 +248,14 @@ class _WordsPageState extends State<WordsPage> {
                                     //  elevation: 0,
                                     //  highlightColor: Colors.transparent,
                                     color: Colors.transparent,
-                                    onPressed: null,
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                PlayerPoints()),
+                                      );
+                                    },
                                     child: Text(
                                       'Press for next',
                                       textAlign: TextAlign.center,
@@ -190,35 +279,71 @@ class _WordsPageState extends State<WordsPage> {
                             ],
                           ),
                         ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            Visibility(
+                              visible: isVisible1,
+                              child: Text(
+                                'Anul aparitiei: ' + year,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Josefin',
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            Visibility(
+                              visible: isVisible2,
+                              child: Text(
+                                'Artistul: ' + artist,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Josefin',
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(15.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Column(
-                                children: <Widget>[
-                                  GestureDetector(
-                                    onTap: () {},
-                                    child: SvgPicture.asset(
+                              GestureDetector(
+                                key: btnKey,
+                                onTap: () {
+                                  maxColumn();
+                                },
+                                child: Column(
+                                  children: <Widget>[
+                                    SvgPicture.asset(
                                       'assets/icons8-music.svg',
                                       height: 50,
                                     ),
-                                  ),
-                                  Text(
-                                    'Hints',
-                                    style: TextStyle(
-                                      fontFamily: 'Josefin',
-                                      fontSize: 18,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                                    Text(
+                                      'Hints',
+                                      style: TextStyle(
+                                        fontFamily: 'Josefin',
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                               Column(
                                 children: <Widget>[
                                   GestureDetector(
-                                    onTap: () {},
+                                    onTap: () {
+                                      setState(() {
+                                        moreSeconds();
+                                      });
+                                    },
                                     child: SvgPicture.asset(
                                       'assets/icons8_time_1px_3.svg',
                                       height: 50,
@@ -254,6 +379,38 @@ class _WordsPageState extends State<WordsPage> {
         },
       ),
     );
+  }
+
+  void maxColumn() {
+    PopupMenu menu = PopupMenu(
+        backgroundColor: Colors.black54,
+        lineColor: Colors.tealAccent,
+        maxColumn: 1,
+        items: [
+          MenuItem(
+            title: 'An lansare',
+            //  image: Image.asset('assets/copy.png'),
+          ),
+          MenuItem(
+            title: 'Artist',
+            image: Icon(
+              Icons.verified_user,
+              color: Colors.white,
+            ),
+          ),
+          MenuItem(
+            title: '5 seconds',
+            userInfo: Text('da'),
+            image: Icon(
+              Icons.play_arrow,
+              color: Colors.white,
+            ),
+          ),
+        ],
+        onClickMenu: onClickMenu,
+        stateChanged: stateChanged,
+        onDismiss: onDismiss);
+    menu.show(widgetKey: btnKey);
   }
 }
 

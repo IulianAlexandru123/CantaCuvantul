@@ -12,7 +12,7 @@ class _PlayerPointsState extends State<PlayerPoints> {
     return Scaffold(
         body: Stack(
       children: <Widget>[
-        BackgroundGradient(),
+        BackgroundGradientBlue(),
       ],
     ));
   }
