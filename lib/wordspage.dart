@@ -1,11 +1,16 @@
-import 'dart:math';
+import 'wordIndex.dart';
+import 'wordIndex.dart';
 import 'package:canta_cuvantul/playerpoints.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'popup_menu.dart';
 import 'Backend/Database_model.dart';
 import 'package:flutter/material.dart';
 import 'backgroundGradient.dart';
-import 'package:quiver/async.dart';
+
+import 'dart:async';
+
+WordIndex wordIndex = WordIndex();
+int timeRemaining = 30;
 
 class WordsPage extends StatefulWidget {
   @override
@@ -16,103 +21,9 @@ class _WordsPageState extends State<WordsPage> {
   PopupMenu menu;
 
   GlobalKey btnKey = GlobalKey();
-  int rmd = Random().nextInt(3) + 1;
-  int _counter = 1;
   String artist = '';
   String year = '';
-  int current = 10;
-  int start = 10;
-  int pressed = 0;
-  void startTimer() {
-    CountdownTimer countDownTimer = new CountdownTimer(
-      Duration(seconds: start),
-      Duration(seconds: 1),
-    );
-
-    var sub = countDownTimer.listen(null);
-
-    sub.onData((duration) {
-      setState(() {
-        current = start - duration.elapsed.inSeconds;
-      });
-    });
-    sub.onDone(() {
-      print("Done");
-      setState(() {
-        return showDialog<void>(
-          context: context,
-          barrierDismissible: false, // user must tap button!
-          builder: (BuildContext context) {
-            return AlertDialog(
-              backgroundColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              title: Text(
-                'Timpul s-a terminat',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white),
-              ),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text(
-                    'Mergi la pagina urmatoare',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        //color: Colors.white,
-                        ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => PlayerPoints()),
-                    );
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      });
-    });
-  }
-
-  void moreSeconds() {
-    setState(() {
-      current += 10;
-      start += 10;
-    });
-  }
-
-  /* int _getRandom() {
-  rmd = Random().nextInt(3) + 1;
-    return rmd;
-  }
-*/
-  void _counterIncrease() {
-    if (_isFinied() == true)
-      _counter++;
-    else
-      _restartGame();
-  }
-
-  void _restartGame() {
-    _counter = 1;
-  }
-
-  bool _isFinied() {
-    if (_counter < 10)
-      return true;
-    else
-      return false;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    startTimer();
-  }
-
+  int _current;
   void stateChanged(bool isShow) {
     print('menu is ${isShow ? 'showing' : 'closed'}');
   }
@@ -135,16 +46,15 @@ class _WordsPageState extends State<WordsPage> {
     print('Menu is dismiss');
   }
 
-  var colorCurrent = Colors.white;
   @override
   Widget build(BuildContext context) {
     PopupMenu.context = context;
-    if (current <= 3) colorCurrent = Colors.red;
+    _current = wordIndex.getCounter();
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: FutureBuilder<List>(
-        future: Word().runQuery(rmd),
+        future: Word().runQuery(wordIndex.getRmd()),
         initialData: List(),
         builder: (context, snapshot) {
           var post = snapshot.data[0].row[2];
@@ -184,7 +94,7 @@ class _WordsPageState extends State<WordsPage> {
                         Padding(
                           padding: const EdgeInsets.only(top: 30),
                           child: Text(
-                            'Runda $_counter',
+                            'Runda $_current',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Josefin',
@@ -233,48 +143,17 @@ class _WordsPageState extends State<WordsPage> {
                           child: Stack(
                             alignment: Alignment.center,
                             children: <Widget>[
-                              Column(
-                                children: <Widget>[
-                                  Text(
-                                    '$current',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: colorCurrent,
-                                      fontFamily: 'Rubik',
-                                      fontSize: 80,
-                                    ),
-                                  ),
-                                  FlatButton(
-                                    //  elevation: 0,
-                                    //  highlightColor: Colors.transparent,
-                                    color: Colors.transparent,
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                PlayerPoints()),
-                                      );
-                                    },
-                                    child: Text(
-                                      'Press for next',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.black54,
-                                        fontFamily: 'Josefin',
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
                               SizedBox(
                                 width: 200,
                                 height: 200,
                                 child: CustomPaint(
                                   painter: CirclePainter(),
                                 ),
+                              ),
+                              Column(
+                                children: <Widget>[
+                                  CntTimer(),
+                                ],
                               ),
                             ],
                           ),
@@ -340,9 +219,7 @@ class _WordsPageState extends State<WordsPage> {
                                 children: <Widget>[
                                   GestureDetector(
                                     onTap: () {
-                                      setState(() {
-                                        moreSeconds();
-                                      });
+                                      timeRemaining += 10;
                                     },
                                     child: SvgPicture.asset(
                                       'assets/icons8_time_1px_3.svg',
@@ -432,5 +309,85 @@ class CirclePainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
     return false;
+  }
+}
+
+class CntTimer extends StatefulWidget {
+  @override
+  CntTimerState createState() => CntTimerState();
+}
+
+class CntTimerState extends State<CntTimer> {
+  var colorCurrent = Colors.white;
+
+  Timer timer;
+
+  @override
+  void initState() {
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      _getTime();
+      if (timeRemaining == 0) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => PlayerPoints()));
+      }
+    });
+    super.initState();
+  }
+
+  void _getTime() {
+    setState(() {
+      timeRemaining == 0 ? timeRemaining = 0 : timeRemaining--;
+    });
+  }
+
+  @override
+  void dispose() {
+    timeRemaining = 30;
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (timeRemaining == 0) dispose();
+    if (timeRemaining <= 3) colorCurrent = Colors.red;
+    return Column(
+      children: <Widget>[
+        Text(
+          '$timeRemaining',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: colorCurrent,
+            fontFamily: 'Rubik',
+            fontSize: 80,
+          ),
+        ),
+        FlatButton(
+          //  elevation: 0,
+          //  highlightColor: Colors.transparent,
+          color: Colors.transparent,
+          onPressed: () {
+            setState(() {
+              timer.cancel();
+              timeRemaining = 30;
+            });
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PlayerPoints()),
+            );
+          },
+          child: Text(
+            'Press for next',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black54,
+              fontFamily: 'Josefin',
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        )
+      ],
+    );
   }
 }

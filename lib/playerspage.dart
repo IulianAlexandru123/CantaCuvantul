@@ -2,6 +2,7 @@ import 'package:canta_cuvantul/backgroundGradient.dart';
 import 'package:canta_cuvantul/wordspage.dart';
 import 'package:flutter/material.dart';
 import 'brainplayersgrid.dart';
+import 'users.dart';
 
 BrainPlayer _brainPlayer = BrainPlayer();
 
@@ -106,7 +107,10 @@ class _PlayerPageState extends State<PlayerPage> {
                                       str.length <= 2
                                           ? _validate[index] = true
                                           : _validate[index] = false;
-                                      playersName.add(str);
+                                      // playersName.add(str);
+                                      UserBrain().addUser(str, 0);
+                                      UserBrain().printUSer();
+                                      print(playersName);
                                     });
                                   },
                                 ),
