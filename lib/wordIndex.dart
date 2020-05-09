@@ -4,13 +4,20 @@ int _rmd = Random().nextInt(3) + 1;
 int _counter = 1;
 
 class WordIndex {
-  WordIndex() {}
+  WordIndex();
   void generateRandom() {
     _rmd = Random().nextInt(3) + 1;
   }
 
   void counterIncrease() {
     _counter++;
+  }
+
+  bool isOk() {
+    if (_counter < 10)
+      return true;
+    else
+      return false;
   }
 
   int getRmd() {

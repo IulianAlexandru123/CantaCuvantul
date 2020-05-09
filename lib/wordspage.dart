@@ -1,5 +1,4 @@
 import 'wordIndex.dart';
-import 'wordIndex.dart';
 import 'package:canta_cuvantul/playerpoints.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'popup_menu.dart';
@@ -57,8 +56,8 @@ class _WordsPageState extends State<WordsPage> {
         future: Word().runQuery(wordIndex.getRmd()),
         initialData: List(),
         builder: (context, snapshot) {
-          var post = snapshot.data[0].row[2];
-          int lung = post.length;
+          //var post = snapshot.data[0].row[2];
+          //  int lung = post.length;
           artist = snapshot.data[1].row[2];
           year = snapshot.data[1].row[3].toString();
           if (snapshot.hasData) {

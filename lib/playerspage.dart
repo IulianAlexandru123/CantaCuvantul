@@ -1,10 +1,13 @@
 import 'package:canta_cuvantul/backgroundGradient.dart';
+import 'package:canta_cuvantul/users.dart';
 import 'package:canta_cuvantul/wordspage.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'brainplayersgrid.dart';
-import 'users.dart';
+import 'dart:convert';
 
 BrainPlayer _brainPlayer = BrainPlayer();
+int counter = 0;
 
 class PlayerPage extends StatefulWidget {
   @override
@@ -12,10 +15,9 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
-  List<String> playersName = [];
-
   // bool _validate = false;
   List<bool> _validate = [false, false, false, false, false, false];
+  //List<bool> _submited = [false, false, false, false, false, false];
   List<bool> _setImagestate = [true, true, true, true, true, true];
   List<String> _setImage = ['', '', '', '', '', ''];
   int myIndex = 0;
@@ -25,6 +27,9 @@ class _PlayerPageState extends State<PlayerPage> {
     else
       return false;
   }
+
+  User userSave = User();
+  SharedPref sharedPref = SharedPref();
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +67,7 @@ class _PlayerPageState extends State<PlayerPage> {
                   primary: false,
                   padding: const EdgeInsets.fromLTRB(40, 40, 40, 40),
                   crossAxisSpacing: 45,
-                  physics: new NeverScrollableScrollPhysics(),
+                  // physics: new NeverScrollableScrollPhysics(),
                   childAspectRatio: 0.8,
                   mainAxisSpacing: 20,
                   crossAxisCount: 2,
@@ -73,124 +78,137 @@ class _PlayerPageState extends State<PlayerPage> {
                         borderRadius: BorderRadius.all(
                           Radius.circular(30.0),
                         ),
-                        child: Visibility(
-                          visible: _brainPlayer.card[index],
+                        child: Opacity(
+                          opacity: _brainPlayer.card[index] ? 1 : 0.5,
                           child: Container(
                             //  padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
-                                new TextField(
-                                  textAlign: TextAlign.center,
-                                  //controller: _text,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'Josefin',
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Nume Jucator',
-                                    contentPadding: EdgeInsets.all(0),
-                                    fillColor: Colors.white,
-                                    border: InputBorder.none,
-                                    hintStyle: TextStyle(
-                                      color: Colors.white30,
+                                Visibility(
+                                  visible: _brainPlayer.card[index],
+                                  child: new TextField(
+                                    textAlign: TextAlign.center,
+                                    //controller: _text,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontFamily: 'Josefin',
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    errorText: _validate[index]
-                                        ? 'Minim 2 caractere'
-                                        : null,
+                                    decoration: InputDecoration(
+                                      hintText: 'Nume Jucator',
+                                      contentPadding: EdgeInsets.all(0),
+                                      fillColor: Colors.white,
+                                      border: InputBorder.none,
+                                      hintStyle: TextStyle(
+                                        color: Colors.white30,
+                                      ),
+                                      errorText: _validate[index]
+                                          ? 'Minim 2 caractere'
+                                          : null,
+                                    ),
+                                    onChanged: (String str) {},
+
+                                    onSubmitted: (String str) {
+                                      //if (_submited[index] == false) {
+                                      setState(() {
+                                        str.length <= 2
+                                            ? _validate[index] = true
+                                            : _validate[index] = false;
+                                        userSave.name = str;
+                                        userSave.points = 0;
+                                        sharedPref.save("$index", userSave);
+                                        counter++;
+                                        //     _submited[index] = true;
+                                      });
+                                      // } else {
+                                      // userBrain.changeUser(str, index);
+                                      //  }
+                                    },
                                   ),
-                                  onSubmitted: (String str) {
-                                    setState(() {
-                                      str.length <= 2
-                                          ? _validate[index] = true
-                                          : _validate[index] = false;
-                                      // playersName.add(str);
-                                      UserBrain().addUser(str, 0);
-                                      UserBrain().printUSer();
-                                      print(playersName);
-                                    });
-                                  },
                                 ),
                                 Visibility(
                                   visible: _setImagestate[index],
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.add,
-                                      size: 80,
-                                      color: Colors.lightGreenAccent,
+                                  child: Visibility(
+                                    visible: _brainPlayer.card[index],
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.add,
+                                        size: 80,
+                                        color: Colors.lightGreenAccent,
+                                      ),
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              contentPadding:
+                                                  EdgeInsets.only(bottom: 10),
+                                              title: Text(
+                                                'Alege caracterul',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontFamily: 'Josefin',
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              backgroundColor: Colors.blueGrey,
+                                              content: Container(
+                                                color: Colors.blueGrey,
+                                                width: 90,
+                                                height: 90,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: <Widget>[
+                                                    FlatButton(
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          _setImagestate[
+                                                              index] = false;
+                                                          _setImage[index] =
+                                                              'assets/bitmoji1.png';
+                                                        });
+                                                      },
+                                                      child: Image.asset(
+                                                        'assets/bitmoji1.png',
+                                                        width: 80,
+                                                        height: 80,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      height: 100,
+                                                      width: 3,
+                                                      color: Colors.white,
+                                                    ),
+                                                    FlatButton(
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          _setImagestate[
+                                                              index] = false;
+                                                          _setImage[index] =
+                                                              'assets/bitmoji2.png';
+                                                        });
+                                                      },
+                                                      child: Image.asset(
+                                                        'assets/bitmoji2.png',
+                                                        width: 80,
+                                                        height: 80,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
                                     ),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            contentPadding:
-                                                EdgeInsets.only(bottom: 10),
-                                            title: Text(
-                                              'Alege caracterul',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontFamily: 'Josefin',
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            backgroundColor: Colors.blueGrey,
-                                            content: Container(
-                                              color: Colors.blueGrey,
-                                              width: 90,
-                                              height: 90,
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: <Widget>[
-                                                  FlatButton(
-                                                    onPressed: () {
-                                                      setState(() {
-                                                        _setImagestate[index] =
-                                                            false;
-                                                        _setImage[index] =
-                                                            'assets/bitmoji1.png';
-                                                      });
-                                                    },
-                                                    child: Image.asset(
-                                                      'assets/bitmoji1.png',
-                                                      width: 80,
-                                                      height: 80,
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    height: 100,
-                                                    width: 3,
-                                                    color: Colors.white,
-                                                  ),
-                                                  FlatButton(
-                                                    onPressed: () {
-                                                      setState(() {
-                                                        _setImagestate[index] =
-                                                            false;
-                                                        _setImage[index] =
-                                                            'assets/bitmoji2.png';
-                                                      });
-                                                    },
-                                                    child: Image.asset(
-                                                      'assets/bitmoji2.png',
-                                                      width: 80,
-                                                      height: 80,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
                                   ),
                                 ),
                                 Image.asset(
@@ -229,7 +247,6 @@ class _PlayerPageState extends State<PlayerPage> {
                       ),
                       onPressed: () {
                         Navigator.pop(context);
-                        _brainPlayer.resetPos();
                       },
                     ),
                     RaisedButton(

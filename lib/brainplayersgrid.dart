@@ -1,7 +1,6 @@
 class BrainPlayer {
   int cardIndex = 1;
   List<bool> card = [true, false, false, false, false, false];
-
   int increaseIndex() {
     cardIndex++;
     return cardIndex;
