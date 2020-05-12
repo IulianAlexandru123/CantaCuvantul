@@ -2,12 +2,11 @@ import 'package:canta_cuvantul/backgroundGradient.dart';
 import 'package:canta_cuvantul/users.dart';
 import 'package:canta_cuvantul/wordspage.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'brainplayersgrid.dart';
-import 'dart:convert';
 
 BrainPlayer _brainPlayer = BrainPlayer();
 int counter = 0;
+List<User> useri = [];
 
 class PlayerPage extends StatefulWidget {
   @override
@@ -109,7 +108,11 @@ class _PlayerPageState extends State<PlayerPage> {
                                           ? 'Minim 2 caractere'
                                           : null,
                                     ),
-                                    onChanged: (String str) {},
+                                    onChanged: (String str) {
+                                      setState(() {
+                                        useri[index].name = str;
+                                      });
+                                    },
 
                                     onSubmitted: (String str) {
                                       //if (_submited[index] == false) {
@@ -117,10 +120,19 @@ class _PlayerPageState extends State<PlayerPage> {
                                         str.length <= 2
                                             ? _validate[index] = true
                                             : _validate[index] = false;
-                                        userSave.name = str;
+                                        /*  userSave.name = str;
                                         userSave.points = 0;
+                                        userSave.caracter = _setImage[index];
+                                        print(userSave.caracter);
                                         sharedPref.save("$index", userSave);
                                         counter++;
+                                        print(index);
+                                        */
+
+                                        useri.add(User(
+                                            name: str,
+                                            points: 0,
+                                            caracter: _setImage[index]));
                                         //     _submited[index] = true;
                                       });
                                       // } else {
@@ -173,6 +185,9 @@ class _PlayerPageState extends State<PlayerPage> {
                                                               index] = false;
                                                           _setImage[index] =
                                                               'assets/bitmoji1.png';
+                                                          useri[index]
+                                                                  .caracter =
+                                                              _setImage[index];
                                                         });
                                                       },
                                                       child: Image.asset(
@@ -193,6 +208,9 @@ class _PlayerPageState extends State<PlayerPage> {
                                                               index] = false;
                                                           _setImage[index] =
                                                               'assets/bitmoji2.png';
+                                                          useri[index]
+                                                                  .caracter =
+                                                              _setImage[index];
                                                         });
                                                       },
                                                       child: Image.asset(
@@ -246,6 +264,7 @@ class _PlayerPageState extends State<PlayerPage> {
                         ),
                       ),
                       onPressed: () {
+                        useri = [];
                         Navigator.pop(context);
                       },
                     ),

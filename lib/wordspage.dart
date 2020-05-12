@@ -53,7 +53,7 @@ class _WordsPageState extends State<WordsPage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: FutureBuilder<List>(
-        future: Word().runQuery(wordIndex.getRmd()),
+        future: Word().runQuery(wordIndex.getRmd(), true),
         initialData: List(),
         builder: (context, snapshot) {
           //var post = snapshot.data[0].row[2];

@@ -24,7 +24,7 @@ class Word {
 
   var db;
   var lun;
-  Future<List> runQuery(int id) async {
+  Future<List> runQuery(int id, bool key) async {
     var databasesPath = await getDatabasesPath();
     var path = join(databasesPath, "inApp.db");
 
@@ -64,7 +64,10 @@ class Word {
     var listWord = await db.rawQuery('SELECT * FROM word WHERE id is $id');
     Map<String, dynamic> mapRead = listWord.first;
     String songs = mapRead['song'];
-    var combinedList = List.from(listWord);
+    var combinedList = [];
+    if (key == true) {
+      combinedList = List.from(listWord);
+    }
     lun = songs.length;
     for (int i = 0; i < songs.length; i++) {
       String index = songs[i];
