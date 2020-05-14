@@ -2,10 +2,22 @@ import 'package:canta_cuvantul/backgroundGradient.dart';
 import 'package:canta_cuvantul/users.dart';
 import 'package:canta_cuvantul/wordspage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'brainplayersgrid.dart';
 
 BrainPlayer _brainPlayer = BrainPlayer();
 int counter = 0;
+String nume, caracter;
+
+List<Color> colors = [
+  Colors.transparent,
+  Colors.transparent,
+  Colors.transparent,
+  Colors.transparent,
+  Colors.transparent,
+  Colors.transparent
+];
+
 List<User> useri = [];
 
 class PlayerPage extends StatefulWidget {
@@ -14,22 +26,6 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
-  // bool _validate = false;
-  List<bool> _validate = [false, false, false, false, false, false];
-  //List<bool> _submited = [false, false, false, false, false, false];
-  List<bool> _setImagestate = [true, true, true, true, true, true];
-  List<String> _setImage = ['', '', '', '', '', ''];
-  int myIndex = 0;
-  bool isDisabled() {
-    if (_validate[myIndex] == false || _setImagestate[myIndex] == true)
-      return true;
-    else
-      return false;
-  }
-
-  User userSave = User();
-  SharedPref sharedPref = SharedPref();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,6 +58,227 @@ class _PlayerPageState extends State<PlayerPage> {
                 ),
               ),
               Expanded(
+                child: GridView.builder(
+                  itemCount: 6,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.05,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 20,
+                  ),
+                  itemBuilder: (_, int index) {
+                    return Card(
+                      shadowColor: Colors.black45,
+                      margin: EdgeInsets.symmetric(horizontal: 20),
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          color: Color(0xFF252525),
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
+                      color: colors[index],
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: <Widget>[
+                          Visibility(
+                            visible: colors[index] == Colors.transparent
+                                ? true
+                                : false,
+                            child: IconButton(
+                              icon: SvgPicture.asset(
+                                'assets/signs.svg',
+                                width: 50,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        backgroundColor: Colors.blueGrey,
+                                        title: Text(
+                                          'Alege caracterul si numele',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Josefin',
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            Container(
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: <Widget>[
+                                                  FlatButton(
+                                                    onPressed: () {
+                                                      caracter =
+                                                          'assets/bitmoji2.png';
+                                                    },
+                                                    child: Image.asset(
+                                                      'assets/bitmoji1.png',
+                                                      width: 90,
+                                                      height: 90,
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 10),
+                                                  FlatButton(
+                                                    onPressed: () {
+                                                      caracter =
+                                                          'assets/bitmoji2.png';
+                                                    },
+                                                    child: Image.asset(
+                                                      'assets/bitmoji2.png',
+                                                      width: 90,
+                                                      height: 90,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            TextField(
+                                              onSubmitted: (str) {
+                                                nume = str;
+                                              },
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: <Widget>[
+                                                RaisedButton(onPressed: null),
+                                                RaisedButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      colors[index] =
+                                                          Color(0xFF252525);
+                                                      useri.add(
+                                                        User(
+                                                            name: nume,
+                                                            caracter: caracter,
+                                                            points: 0),
+                                                      );
+                                                      Navigator.pop(context);
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                });
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: colors[index] != Colors.transparent
+                                ? true
+                                : false,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Flexible(
+                                  child: Text(
+                                    useri[index].name != null
+                                        ? ''
+                                        : useri[index].name,
+                                    textAlign: TextAlign.end,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: 'Josefin',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Divider(),
+                                Flexible(
+                                  flex: 2,
+                                  child: Image.asset(''),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    RaisedButton(
+                      color: Color(0xFFCB6100),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: new BorderRadius.circular(18.0),
+                      ),
+                      child: Text(
+                        'Back',
+                        style: TextStyle(
+                          fontFamily: 'Josefin',
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () {
+                        useri = [];
+                        colors = [
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.transparent
+                        ];
+                        Navigator.pop(context);
+                      },
+                    ),
+                    RaisedButton(
+                      color: Color(0xFF558B2F),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: new BorderRadius.circular(18.0),
+                      ),
+                      child: Text(
+                        "Next",
+                        style: TextStyle(
+                          fontFamily: 'Josefin',
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => WordsPage()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/*
+Expanded(
                 child: GridView.count(
                   primary: false,
                   padding: const EdgeInsets.fromLTRB(40, 40, 40, 40),
@@ -244,31 +461,9 @@ class _PlayerPageState extends State<PlayerPage> {
                   }),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    RaisedButton(
-                      color: Color(0xFFCB6100),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(18.0),
-                      ),
-                      child: Text(
-                        'Back',
-                        style: TextStyle(
-                          fontFamily: 'Josefin',
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: () {
-                        useri = [];
-                        Navigator.pop(context);
-                      },
-                    ),
-                    RaisedButton(
+
+*/
+/*    RaisedButton(
                       color: Colors.blue,
                       shape: RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(18.0),
@@ -289,35 +484,16 @@ class _PlayerPageState extends State<PlayerPage> {
                           _brainPlayer.checkPos();
                         });
                       },
-                    ),
-                    RaisedButton(
-                      color: Color(0xFF558B2F),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(18.0),
-                      ),
-                      child: Text(
-                        "Next",
-                        style: TextStyle(
-                          fontFamily: 'Josefin',
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => WordsPage()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+                    ),*/
+/*// bool _validate = false;
+  List<bool> _validate = [false, false, false, false, false, false];
+  //List<bool> _submited = [false, false, false, false, false, false];
+  List<bool> _setImagestate = [true, true, true, true, true, true];
+  List<String> _setImage = ['', '', '', '', '', ''];
+  //int myIndex = 0;
+  bool isDisabled() {
+    if (_validate[myIndex] == false || _setImagestate[myIndex] == true)
+      return true;
+    else
+      return false;
+  }*/

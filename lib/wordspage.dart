@@ -292,7 +292,7 @@ class _WordsPageState extends State<WordsPage> {
 
 class CirclePainter extends CustomPainter {
   final _paint = Paint()
-    ..color = Colors.orange
+    ..color = Colors.red
     ..strokeWidth = 10
     // Use [PaintingStyle.fill] if you want the circle to be filled.
     ..style = PaintingStyle.stroke;

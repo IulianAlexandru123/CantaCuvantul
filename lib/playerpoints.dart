@@ -16,6 +16,7 @@ class PlayerPoints extends StatefulWidget {
 
 class _PlayerPointsState extends State<PlayerPoints> {
   int flex_ratio;
+  Color pointsColor = Colors.black;
   void ratio() {
     if (useri.length == 2)
       flex_ratio = 4;
@@ -55,7 +56,7 @@ class _PlayerPointsState extends State<PlayerPoints> {
                 body: SafeArea(
                   child: Stack(
                     children: <Widget>[
-                      BackgroundGradientBlue(),
+                      BackgroundGradient(),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
@@ -87,6 +88,8 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                 //get your item data here ...
 
                                 return FlatButton(
+                                  highlightColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
                                   onPressed: () {
                                     /*    setState(() {
                                       userSave.points = users[index].points + 1;
@@ -97,6 +100,7 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                     });*/
                                     setState(() {
                                       useri[index].points++;
+                                      pointsColor = Colors.red;
                                     });
                                   },
                                   child: Card(
@@ -107,6 +111,8 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                       borderRadius: BorderRadius.circular(22),
                                     ),
                                     child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: <Widget>[
                                         AspectRatio(
                                           aspectRatio: 0.8,
@@ -123,7 +129,10 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                               height: 5,
                                             ),
                                             Text(
-                                                'Puncte: ${useri[index].points}'),
+                                                'Puncte: ${useri[index].points}',
+                                                style: TextStyle(
+                                                  color: pointsColor,
+                                                )),
                                           ],
                                         ),
                                       ],
