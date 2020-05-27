@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'backgroundGradient.dart';
 import 'wordIndex.dart';
 import 'Backend/Database_model.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 //import 'sizehelpers.dart';
 
 WordIndex wordInd = WordIndex();
@@ -16,31 +17,44 @@ class PlayerPoints extends StatefulWidget {
 
 class _PlayerPointsState extends State<PlayerPoints> {
   int flex_ratio;
+  Icon buton = Icon(Icons.play_circle_outline);
+  List<Color> _player_color = [
+    Colors.black,
+    Colors.black,
+    Colors.black,
+    Colors.black,
+    Colors.black,
+    Colors.black,
+  ];
   Color pointsColor = Colors.black;
   void ratio() {
-    if (useri.length == 2)
-      flex_ratio = 4;
-    else if (useri.length == 3 && useri.length == 4)
+    if (counter == 2)
+      flex_ratio = 6;
+    else if (counter == 3 && counter == 4)
       flex_ratio = 3;
-    else if (useri.length == 5 && useri.length == 6) flex_ratio = 1;
+    else if (counter == 5 && counter == 6) flex_ratio = 1;
   }
 
-  /*List<User> users = [];
+  final assetsAudioPlayer = AssetsAudioPlayer();
 
-  SharedPref sharedPref = SharedPref();
-  loadUser() async {
-    for (int i = 0; i < counter; i++) {
-      users.add(User.fromJson(await sharedPref.read("$i")));
-      // users.sort((b, a) => a.points.compareTo(b.points));
-      print(users[i].name);
-      print(users[i].points);
-      print(users[i].caracter);
+  void play() async {
+    try {
+      await assetsAudioPlayer.open(
+        Audio.network("http://www.youtube.com/watch?v=8aMgTIMHjLE"),
+      );
+    } catch (t) {
+      //mp3 unreachable
     }
   }
-*/
+
   @override
   void initState() {
     ratio();
+
+    for (int i = 0; i < counter; i++) {
+      print(useri[i].name);
+      print(useri[i].caracter);
+    }
     super.initState();
   }
 
@@ -76,7 +90,7 @@ class _PlayerPointsState extends State<PlayerPoints> {
                           Expanded(
                             flex: 2,
                             child: GridView.builder(
-                              itemCount: useri.length,
+                              itemCount: counter,
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
@@ -91,16 +105,9 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                   highlightColor: Colors.transparent,
                                   splashColor: Colors.transparent,
                                   onPressed: () {
-                                    /*    setState(() {
-                                      userSave.points = users[index].points + 1;
-                                      userSave.name = users[index].name;
-                                      userSave.caracter = users[index].caracter;
-                                      users[index].points++;
-                                      sharedPref.save("$index", userSave);
-                                    });*/
                                     setState(() {
                                       useri[index].points++;
-                                      pointsColor = Colors.red;
+                                      _player_color[index] = Colors.red;
                                     });
                                   },
                                   child: Card(
@@ -131,7 +138,7 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                             Text(
                                                 'Puncte: ${useri[index].points}',
                                                 style: TextStyle(
-                                                  color: pointsColor,
+                                                  color: _player_color[index],
                                                 )),
                                           ],
                                         ),
@@ -159,7 +166,9 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                 //get your item data here ...
 
                                 return FlatButton(
-                                  onPressed: null,
+                                  onPressed: () {
+                                    play();
+                                  },
                                   child: Card(
                                     shape: RoundedRectangleBorder(
                                       side: BorderSide(width: 0),
@@ -167,8 +176,25 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                     ),
                                     color: Colors.amber[800],
                                     child: ListTile(
-                                      title:
+                                      title: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
                                           Text(snapshot.data[position].row[1]),
+                                          IconButton(
+                                            icon: buton,
+                                            highlightColor: Colors.transparent,
+                                            splashColor: Colors.transparent,
+                                            color: Colors.black,
+                                            onPressed: () {
+                                              setState(() {
+                                                buton = Icon(
+                                                    Icons.pause_circle_outline);
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                       subtitle: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
@@ -278,23 +304,3 @@ class _PlayerPointsState extends State<PlayerPoints> {
     );
   }
 }
-/*
-Stack(
-        children: <Widget>[
-          BackgroundGradientBlue(),
-          SafeArea(
-            child: FlatButton(
-              onPressed: () {
-                WordIndex().generateRandom();
-                WordIndex().counterIncrease();
-                print(WordIndex().getCounter());
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => WordsPage()),
-                );
-              },
-              child: Text('Next word'),
-            ),
-          ),
-        ],
-      ),*/

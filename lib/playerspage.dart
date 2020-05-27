@@ -8,7 +8,7 @@ import 'brainplayersgrid.dart';
 BrainPlayer _brainPlayer = BrainPlayer();
 int counter = 0;
 String nume, caracter;
-
+List<bool> _validate = [false, false, false, false, false, false];
 List<Color> colors = [
   Colors.transparent,
   Colors.transparent,
@@ -67,10 +67,13 @@ class _PlayerPageState extends State<PlayerPage> {
                     mainAxisSpacing: 20,
                   ),
                   itemBuilder: (_, int index) {
+                    useri.add(
+                      User(name: '', caracter: '', points: 0),
+                    );
                     return Card(
-                      shadowColor: Colors.black45,
+                      shadowColor: Colors.transparent,
                       margin: EdgeInsets.symmetric(horizontal: 20),
-                      elevation: 6,
+                      elevation: 1.5,
                       shape: RoundedRectangleBorder(
                         side: BorderSide(
                           color: Color(0xFF252525),
@@ -87,9 +90,10 @@ class _PlayerPageState extends State<PlayerPage> {
                                 ? true
                                 : false,
                             child: IconButton(
-                              icon: SvgPicture.asset(
-                                'assets/signs.svg',
-                                width: 50,
+                              icon: Icon(
+                                Icons.add,
+                                color: Color(0xFF558B2F),
+                                size: 70,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -98,6 +102,11 @@ class _PlayerPageState extends State<PlayerPage> {
                                     builder: (BuildContext context) {
                                       return AlertDialog(
                                         backgroundColor: Colors.blueGrey,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(30.0),
+                                          ),
+                                        ),
                                         title: Text(
                                           'Alege caracterul si numele',
                                           textAlign: TextAlign.center,
@@ -119,7 +128,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                                   FlatButton(
                                                     onPressed: () {
                                                       caracter =
-                                                          'assets/bitmoji2.png';
+                                                          'assets/bitmoji1.png';
                                                     },
                                                     child: Image.asset(
                                                       'assets/bitmoji1.png',
@@ -143,8 +152,34 @@ class _PlayerPageState extends State<PlayerPage> {
                                               ),
                                             ),
                                             TextField(
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20,
+                                                fontFamily: 'Josefin',
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              decoration: InputDecoration(
+                                                hintText: 'Nume Jucator',
+                                                contentPadding:
+                                                    EdgeInsets.all(0),
+                                                fillColor: Colors.white,
+                                                border: InputBorder.none,
+                                                hintStyle: TextStyle(
+                                                  color: Colors.white30,
+                                                ),
+                                                errorText: _validate[index]
+                                                    ? 'Minim 2 caractere'
+                                                    : null,
+                                              ),
                                               onSubmitted: (str) {
-                                                nume = str;
+                                                setState(() {
+                                                  str.length <= 2
+                                                      ? _validate[index] = true
+                                                      : _validate[index] =
+                                                          false;
+                                                  nume = str;
+                                                });
                                               },
                                             ),
                                             Row(
@@ -154,17 +189,23 @@ class _PlayerPageState extends State<PlayerPage> {
                                               children: <Widget>[
                                                 RaisedButton(onPressed: null),
                                                 RaisedButton(
+                                                  child: Text("add player"),
                                                   onPressed: () {
                                                     setState(() {
                                                       colors[index] =
                                                           Color(0xFF252525);
-                                                      useri.add(
-                                                        User(
-                                                            name: nume,
-                                                            caracter: caracter,
-                                                            points: 0),
-                                                      );
-                                                      Navigator.pop(context);
+                                                      useri[index].name = nume;
+                                                      useri[index].caracter =
+                                                          caracter;
+                                                      nume = '';
+                                                      caracter = '';
+                                                      counter++;
+                                                      final snackBar = SnackBar(
+                                                          content: Text(
+                                                              'Yay! A SnackBar!'));
+
+                                                      Navigator.of(context)
+                                                          .pop();
                                                     });
                                                   },
                                                 ),
@@ -188,21 +229,20 @@ class _PlayerPageState extends State<PlayerPage> {
                               children: <Widget>[
                                 Flexible(
                                   child: Text(
-                                    useri[index].name != null
-                                        ? ''
-                                        : useri[index].name,
+                                    useri[index].name,
                                     textAlign: TextAlign.end,
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontFamily: 'Josefin',
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 20,
                                     ),
                                   ),
                                 ),
-                                Divider(),
+                                Divider(color: Colors.transparent),
                                 Flexible(
                                   flex: 2,
-                                  child: Image.asset(''),
+                                  child: Image.asset(useri[index].caracter),
                                 ),
                               ],
                             ),
