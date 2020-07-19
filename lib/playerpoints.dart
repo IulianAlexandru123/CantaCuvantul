@@ -1,11 +1,11 @@
 import 'package:canta_cuvantul/main.dart';
 import 'package:canta_cuvantul/playerspage.dart';
-import 'package:canta_cuvantul/wordspage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'wordspage.dart';
 import 'package:flutter/material.dart';
 import 'backgroundGradient.dart';
 import 'wordIndex.dart';
-import 'Backend/Database_model.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:audioplayers/audioplayers.dart';
 //import 'sizehelpers.dart';
 
 WordIndex wordInd = WordIndex();
@@ -35,18 +35,6 @@ class _PlayerPointsState extends State<PlayerPoints> {
     else if (counter == 5 && counter == 6) flex_ratio = 1;
   }
 
-  final assetsAudioPlayer = AssetsAudioPlayer();
-
-  void play() async {
-    try {
-      await assetsAudioPlayer.open(
-        Audio.network("http://www.youtube.com/watch?v=8aMgTIMHjLE"),
-      );
-    } catch (t) {
-      //mp3 unreachable
-    }
-  }
-
   @override
   void initState() {
     ratio();
@@ -58,13 +46,15 @@ class _PlayerPointsState extends State<PlayerPoints> {
     super.initState();
   }
 
+  AudioPlayer audioPlayer = new AudioPlayer();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List>(
-          future: Word().runQuery(wordIndex.getRmd(), false),
-          initialData: List(),
-          builder: (context, snapshot) {
+      body: StreamBuilder<QuerySnapshot>(
+          stream: Firestore.instance.collection('Melodii').snapshots(),
+          // initialData: List(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasData) {
               return Scaffold(
                 body: SafeArea(
@@ -161,14 +151,10 @@ class _PlayerPointsState extends State<PlayerPoints> {
                           Expanded(
                             flex: flex_ratio,
                             child: ListView.builder(
-                              itemCount: snapshot.data.length,
+                              itemCount: melodii.length,
                               itemBuilder: (_, int position) {
-                                //get your item data here ...
-
                                 return FlatButton(
-                                  onPressed: () {
-                                    play();
-                                  },
+                                  onPressed: () {},
                                   child: Card(
                                     shape: RoundedRectangleBorder(
                                       side: BorderSide(width: 0),
@@ -180,13 +166,18 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
-                                          Text(snapshot.data[position].row[1]),
+                                          Text(
+                                            snapshot.data.documents[
+                                                melodii[position] - 1]["Nume"],
+                                          ),
                                           IconButton(
                                             icon: buton,
                                             highlightColor: Colors.transparent,
                                             splashColor: Colors.transparent,
                                             color: Colors.black,
-                                            onPressed: () {
+                                            onPressed: () async {
+                                              await audioPlayer.play(
+                                                  'https://firebasestorage.googleapis.com/v0/b/canta-cuvantul-4bf2a.appspot.com/o/Dragoste%20De%20Inchiriat.mp3?alt=media&token=9f6dbf93-fdc4-4b96-9643-9db28c3378b7');
                                               setState(() {
                                                 buton = Icon(
                                                     Icons.pause_circle_outline);
@@ -200,9 +191,11 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                             MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
                                           Text("Artist: " +
-                                              snapshot.data[position].row[2]),
+                                              snapshot.data.documents[
+                                                      melodii[position] - 1]
+                                                  ["Artist"]),
                                           Text(
-                                              "An: ${snapshot.data[position].row[3]}"),
+                                              "An: ${snapshot.data.documents[melodii[position] - 1]["An"]}"),
                                         ],
                                       ),
                                     ),

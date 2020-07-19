@@ -1,15 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'wordIndex.dart';
 import 'package:canta_cuvantul/playerpoints.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'popup_menu.dart';
-import 'Backend/Database_model.dart';
 import 'package:flutter/material.dart';
 import 'backgroundGradient.dart';
-
 import 'dart:async';
 
 WordIndex wordIndex = WordIndex();
 int timeRemaining = 30;
+List melodii = [];
 
 class WordsPage extends StatefulWidget {
   @override
@@ -18,15 +18,17 @@ class WordsPage extends StatefulWidget {
 
 class _WordsPageState extends State<WordsPage> {
   PopupMenu menu;
-
   GlobalKey btnKey = GlobalKey();
   String artist = '';
   String year = '';
   int _current;
+  int _random;
+
   void stateChanged(bool isShow) {
     print('menu is ${isShow ? 'showing' : 'closed'}');
   }
 
+  int position;
   var isVisible1 = false;
   var isVisible2 = false;
   void onClickMenu(MenuItemProvider item) {
@@ -49,18 +51,16 @@ class _WordsPageState extends State<WordsPage> {
   Widget build(BuildContext context) {
     PopupMenu.context = context;
     _current = wordIndex.getCounter();
-
+    wordIndex.generateRandom();
+    _random = wordIndex.getRmd();
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: FutureBuilder<List>(
-        future: Word().runQuery(wordIndex.getRmd(), true),
-        initialData: List(),
-        builder: (context, snapshot) {
-          //var post = snapshot.data[0].row[2];
-          //  int lung = post.length;
-          artist = snapshot.data[1].row[2];
-          year = snapshot.data[1].row[3].toString();
+      body: StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance.collection('Cuvinte').snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasData) {
+            position = snapshot.data.documents[_random]["Melodie"][0];
+            melodii = snapshot.data.documents[_random]["Melodie"];
             return Scaffold(
               body: Stack(
                 children: <Widget>[
@@ -125,7 +125,7 @@ class _WordsPageState extends State<WordsPage> {
                             Container(
                               decoration: BoxDecoration(),
                               child: Text(
-                                snapshot.data[0].row[1],
+                                snapshot.data.documents[_random]['Nume'],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'Josefin',
@@ -157,35 +157,51 @@ class _WordsPageState extends State<WordsPage> {
                             ],
                           ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            Visibility(
-                              visible: isVisible1,
-                              child: Text(
-                                'Anul aparitiei: ' + year,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'Josefin',
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                            Visibility(
-                              visible: isVisible2,
-                              child: Text(
-                                'Artistul: ' + artist,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'Josefin',
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        StreamBuilder<QuerySnapshot>(
+                            stream: Firestore.instance
+                                .collection('Melodii')
+                                .snapshots(),
+                            builder: (BuildContext context,
+                                AsyncSnapshot<QuerySnapshot> snapshot) {
+                              if (snapshot.hasData) {
+                                artist = snapshot.data.documents[1]["Artist"];
+                                year = snapshot.data.documents[1]["An"];
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: <Widget>[
+                                    Visibility(
+                                      visible: isVisible1,
+                                      child: Text(
+                                        'Anul aparitiei: ' + year,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontFamily: 'Josefin',
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                    Visibility(
+                                      visible: isVisible2,
+                                      child: Text(
+                                        'Artistul: ' + artist,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontFamily: 'Josefin',
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+                            }),
                         Padding(
                           padding: const EdgeInsets.all(15.0),
                           child: Row(

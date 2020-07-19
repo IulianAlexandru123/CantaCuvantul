@@ -1,12 +1,12 @@
 import 'dart:math';
 
-int _rmd = Random().nextInt(3) + 1;
+int _rmd = Random().nextInt(3);
 int _counter = 1;
 
 class WordIndex {
   WordIndex();
   void generateRandom() {
-    _rmd = Random().nextInt(3) + 1;
+    _rmd = Random().nextInt(3);
   }
 
   void counterIncrease() {
