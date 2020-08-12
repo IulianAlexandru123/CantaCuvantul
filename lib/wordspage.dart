@@ -6,6 +6,11 @@ import 'popup_menu.dart';
 import 'package:flutter/material.dart';
 import 'backgroundGradient.dart';
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
+import 'dart:math';
+import 'package:firebase_admob/firebase_admob.dart';
+import 'noCoins.dart';
+import 'sharedPrefs.dart';
 
 WordIndex wordIndex = WordIndex();
 int timeRemaining = 30;
@@ -16,51 +21,116 @@ class WordsPage extends StatefulWidget {
   _WordsPageState createState() => _WordsPageState();
 }
 
+AudioPlayer audioPlayer = new AudioPlayer();
+
 class _WordsPageState extends State<WordsPage> {
   PopupMenu menu;
   GlobalKey btnKey = GlobalKey();
   String artist = '';
   String year = '';
   int _current;
-  int _random;
 
+  int _random;
+  Duration secunde = new Duration(seconds: 100);
   void stateChanged(bool isShow) {
     print('menu is ${isShow ? 'showing' : 'closed'}');
   }
 
   int position;
-  var isVisible1 = false;
-  var isVisible2 = false;
-  void onClickMenu(MenuItemProvider item) {
+  double isVisible1 = 0;
+  double isVisible2 = 0;
+  String link = '';
+  int resumeTime = 0;
+
+  void onClickMenu(MenuItemProvider item) async {
+    int coins = await SharedPreferanceHelper.getCoins();
     print('Click menu -> ${item.menuTitle}');
-    if (item.menuTitle == 'An lansare')
-      setState(() {
-        isVisible1 = true;
-      });
-    if (item.menuTitle == 'Artist')
-      setState(() {
-        isVisible2 = true;
-      });
+    if (item.menuTitle == 'An lansare - 5\$') {
+      if (coins - 5 < 0) {
+        noCoins(context);
+      } else {
+        SharedPreferanceHelper.decreaseCoins(coins, 5);
+        setState(() {
+          isVisible1 = 1;
+        });
+      }
+    }
+    if (item.menuTitle == 'Artist - 10\$') {
+      if (coins - 10 < 0) {
+        noCoins(context);
+      } else {
+        SharedPreferanceHelper.decreaseCoins(coins, 10);
+        setState(() {
+          isVisible2 = 1;
+        });
+      }
+    }
+    if (item.menuTitle == '5 seconds - 15\$') {
+      if (coins - 15 < 0) {
+        noCoins(context);
+      } else {
+        SharedPreferanceHelper.decreaseCoins(coins, 15);
+        setState(() {
+          audioPlayer.play(link);
+          Timer.periodic(Duration(seconds: 12), (Timer t) {
+            audioPlayer.stop();
+          });
+        });
+      }
+    }
+  }
+
+  void refresh() {
+    setState(() {});
+  }
+
+  void initState() {
+    super.initState();
+    RewardedVideoAd.instance.listener =
+        (RewardedVideoAdEvent event, {String rewardType, int rewardAmount}) {
+      if (event == RewardedVideoAdEvent.started) {
+        setState(() {
+          resumeTime = timeRemaining;
+          timeRemaining = 900;
+        });
+      }
+      if (event == RewardedVideoAdEvent.rewarded) {
+        setState(() async {
+          int coin = await SharedPreferanceHelper.getCoins();
+          await SharedPreferanceHelper.increaseCoins(coin, rewardAmount);
+          setState(() {
+            timeRemaining = resumeTime + 1;
+          });
+          refresh();
+        });
+      }
+    };
+    wordIndex.generateRandom();
+    _random = wordIndex.getRmd();
   }
 
   void onDismiss() {
     print('Menu is dismiss');
   }
 
+  bool choose = false;
   @override
   Widget build(BuildContext context) {
     PopupMenu.context = context;
     _current = wordIndex.getCounter();
-    wordIndex.generateRandom();
-    _random = wordIndex.getRmd();
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance.collection('Cuvinte').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasData) {
-            position = snapshot.data.documents[_random]["Melodie"][0];
-            melodii = snapshot.data.documents[_random]["Melodie"];
+            if (choose == false) {
+              melodii = snapshot.data.documents[_random]["Melodie"];
+              position = Random().nextInt(melodii.length);
+              choose = true;
+              print(position);
+              print(melodii[position]);
+            }
             return Scaffold(
               body: Stack(
                 children: <Widget>[
@@ -70,14 +140,23 @@ class _WordsPageState extends State<WordsPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: <Widget>[
-                          Text(
-                            '100',
-                            style: TextStyle(
-                              fontFamily: 'Rubik',
-                              fontSize: 20,
-                              color: Colors.white,
-                            ),
-                          ),
+                          FutureBuilder<int>(
+                              future: SharedPreferanceHelper.getCoins(),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<int> snapshot) {
+                                if (!snapshot.hasData)
+                                  return Text("NULL");
+                                else {
+                                  return Text(
+                                    '${snapshot.data}',
+                                    style: TextStyle(
+                                      fontFamily: 'Rubik',
+                                      fontSize: 20,
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                }
+                              }),
                           SizedBox(
                             width: 5,
                           ),
@@ -164,14 +243,18 @@ class _WordsPageState extends State<WordsPage> {
                             builder: (BuildContext context,
                                 AsyncSnapshot<QuerySnapshot> snapshot) {
                               if (snapshot.hasData) {
-                                artist = snapshot.data.documents[1]["Artist"];
-                                year = snapshot.data.documents[1]["An"];
+                                artist = snapshot.data
+                                    .documents[melodii[position] - 1]["Artist"];
+                                year = snapshot.data
+                                    .documents[melodii[position] - 1]["An"];
+                                link = snapshot.data
+                                    .documents[melodii[position] - 1]["Link"];
                                 return Column(
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: <Widget>[
-                                    Visibility(
-                                      visible: isVisible1,
+                                    Opacity(
+                                      opacity: isVisible1,
                                       child: Text(
                                         'Anul aparitiei: ' + year,
                                         style: TextStyle(
@@ -182,8 +265,8 @@ class _WordsPageState extends State<WordsPage> {
                                         ),
                                       ),
                                     ),
-                                    Visibility(
-                                      visible: isVisible2,
+                                    Opacity(
+                                      opacity: isVisible2,
                                       child: Text(
                                         'Artistul: ' + artist,
                                         style: TextStyle(
@@ -233,8 +316,21 @@ class _WordsPageState extends State<WordsPage> {
                               Column(
                                 children: <Widget>[
                                   GestureDetector(
-                                    onTap: () {
-                                      timeRemaining += 10;
+                                    onTap: () async {
+                                      int coins = await SharedPreferanceHelper
+                                          .getCoins();
+
+                                      print(coins);
+                                      if (coins - 20 > 0) {
+                                        SharedPreferanceHelper.decreaseCoins(
+                                            coins, 20);
+                                        setState(() {
+                                          int backuptime = timeRemaining + 10;
+                                          timeRemaining = backuptime;
+                                        });
+                                      } else {
+                                        noCoins(context);
+                                      }
                                     },
                                     child: SvgPicture.asset(
                                       'assets/icons8_time_1px_3.svg',
@@ -243,8 +339,6 @@ class _WordsPageState extends State<WordsPage> {
                                   ),
                                   Text(
                                     '+10 seconds',
-                                    //  textAlign: TextAlign.center,
-
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontFamily: 'Josefin',
@@ -280,22 +374,28 @@ class _WordsPageState extends State<WordsPage> {
         maxColumn: 1,
         items: [
           MenuItem(
-            title: 'An lansare',
-            //  image: Image.asset('assets/copy.png'),
-          ),
-          MenuItem(
-            title: 'Artist',
-            image: Icon(
-              Icons.verified_user,
+            title: 'An lansare - 5\$',
+            textStyle: TextStyle(
+              fontSize: 15,
               color: Colors.white,
+              fontFamily: 'Josefin',
             ),
           ),
           MenuItem(
-            title: '5 seconds',
-            userInfo: Text('da'),
-            image: Icon(
-              Icons.play_arrow,
+            title: 'Artist - 10\$',
+            image: Image.asset(''),
+            textStyle: TextStyle(
+              fontSize: 15,
               color: Colors.white,
+              fontFamily: 'Josefin',
+            ),
+          ),
+          MenuItem(
+            title: '5 seconds - 15\$',
+            textStyle: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Josefin',
             ),
           ),
         ],
@@ -332,7 +432,7 @@ class CntTimer extends StatefulWidget {
   CntTimerState createState() => CntTimerState();
 }
 
-class CntTimerState extends State<CntTimer> {
+class CntTimerState extends State<CntTimer> with TickerProviderStateMixin {
   var colorCurrent = Colors.white;
 
   Timer timer;
@@ -342,6 +442,11 @@ class CntTimerState extends State<CntTimer> {
     timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
       _getTime();
       if (timeRemaining == 0) {
+        setState(() {
+          timer.cancel();
+          timeRemaining = 30;
+          audioPlayer.stop();
+        });
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => PlayerPoints()));
       }
@@ -359,6 +464,7 @@ class CntTimerState extends State<CntTimer> {
   void dispose() {
     timeRemaining = 30;
     timer?.cancel();
+    audioPlayer.stop();
     super.dispose();
   }
 
@@ -366,6 +472,7 @@ class CntTimerState extends State<CntTimer> {
   Widget build(BuildContext context) {
     if (timeRemaining == 0) dispose();
     if (timeRemaining <= 3) colorCurrent = Colors.red;
+    if (timeRemaining >= 4) colorCurrent = Colors.white;
     return Column(
       children: <Widget>[
         Text(
@@ -382,14 +489,15 @@ class CntTimerState extends State<CntTimer> {
           //  highlightColor: Colors.transparent,
           color: Colors.transparent,
           onPressed: () {
-            setState(() {
-              timer.cancel();
-              timeRemaining = 30;
-            });
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => PlayerPoints()),
             );
+            setState(() {
+              timer.cancel();
+              timeRemaining = 30;
+              audioPlayer.stop();
+            });
           },
           child: Text(
             'Press for next',

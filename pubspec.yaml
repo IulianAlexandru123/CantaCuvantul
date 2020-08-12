@@ -10,10 +10,16 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^0.1.2
-  flutter_svg: ^0.17.4
+  flutter_svg: ^0.18.0
   gradient_widgets: ^0.5.1  
   overlay_support: ^1.0.01
   audioplayers: ^0.15.1
+  shared_preferences: ^0.5.4+6
+  full_screen_menu: ^0.1.2
+  auto_size_text: ^2.1.0
+  flutter_swiper: ^1.1.6
+  circular_countdown_timer: ^0.0.4
+  firebase_admob: ^0.9.3+2
   cloud_firestore: ^0.13.7
   
 dev_dependencies:
@@ -38,7 +44,3 @@ flutter:
     - family: Rubik
       fonts:
         - asset: fonts/Rubik-Regular.ttf
-
-
-
-  

@@ -1,4 +1,3 @@
-import 'package:canta_cuvantul/main.dart';
 import 'package:canta_cuvantul/playerspage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'wordspage.dart';
@@ -6,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'backgroundGradient.dart';
 import 'wordIndex.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'podium.dart';
 //import 'sizehelpers.dart';
 
 WordIndex wordInd = WordIndex();
@@ -16,9 +16,10 @@ class PlayerPoints extends StatefulWidget {
 }
 
 class _PlayerPointsState extends State<PlayerPoints> {
-  int flex_ratio;
+  int flexratio;
+
   Icon buton = Icon(Icons.play_circle_outline);
-  List<Color> _player_color = [
+  List<Color> _playercolor = [
     Colors.black,
     Colors.black,
     Colors.black,
@@ -26,23 +27,29 @@ class _PlayerPointsState extends State<PlayerPoints> {
     Colors.black,
     Colors.black,
   ];
+  bool play = false;
   Color pointsColor = Colors.black;
   void ratio() {
     if (counter == 2)
-      flex_ratio = 6;
-    else if (counter == 3 && counter == 4)
-      flex_ratio = 3;
-    else if (counter == 5 && counter == 6) flex_ratio = 1;
+      flexratio = 6;
+    else if (counter == 3 || counter == 4)
+      flexratio = 3;
+    else if (counter == 5 || counter == 6) flexratio = 1;
   }
 
   @override
   void initState() {
     ratio();
 
-    for (int i = 0; i < counter; i++) {
-      print(useri[i].name);
-      print(useri[i].caracter);
-    }
+    for (int i = 0; i < 6; i++)
+      for (int j = 0; j < 6 - i - 1; j++) {
+        if (useri[j].name == '') {
+          aux = useri[j];
+          useri[j] = useri[j + 1];
+          useri[j + 1] = aux;
+        }
+      }
+    for (int i = 0; i < counter; i++) print(useri[i].name);
     super.initState();
   }
 
@@ -96,13 +103,16 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                   splashColor: Colors.transparent,
                                   onPressed: () {
                                     setState(() {
-                                      useri[index].points++;
-                                      _player_color[index] = Colors.red;
+                                      if (_playercolor[index] == Colors.black) {
+                                        useri[index].points++;
+                                        _playercolor[index] = Colors.red;
+                                      } else {
+                                        useri[index].points--;
+                                        _playercolor[index] = Colors.black;
+                                      }
                                     });
                                   },
                                   child: Card(
-                                    // shadowColor: Colors.black,
-
                                     shape: RoundedRectangleBorder(
                                       side: BorderSide(width: 0),
                                       borderRadius: BorderRadius.circular(22),
@@ -128,7 +138,7 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                             Text(
                                                 'Puncte: ${useri[index].points}',
                                                 style: TextStyle(
-                                                  color: _player_color[index],
+                                                  color: _playercolor[index],
                                                 )),
                                           ],
                                         ),
@@ -149,7 +159,7 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                     fontWeight: FontWeight.bold,
                                   ))),
                           Expanded(
-                            flex: flex_ratio,
+                            flex: flexratio,
                             child: ListView.builder(
                               itemCount: melodii.length,
                               itemBuilder: (_, int position) {
@@ -176,12 +186,24 @@ class _PlayerPointsState extends State<PlayerPoints> {
                                             splashColor: Colors.transparent,
                                             color: Colors.black,
                                             onPressed: () async {
-                                              await audioPlayer.play(
-                                                  'https://firebasestorage.googleapis.com/v0/b/canta-cuvantul-4bf2a.appspot.com/o/Dragoste%20De%20Inchiriat.mp3?alt=media&token=9f6dbf93-fdc4-4b96-9643-9db28c3378b7');
-                                              setState(() {
-                                                buton = Icon(
-                                                    Icons.pause_circle_outline);
-                                              });
+                                              if (play == false) {
+                                                await audioPlayer.play(snapshot
+                                                            .data.documents[
+                                                        melodii[position] - 1]
+                                                    ["Link"]);
+                                                setState(() {
+                                                  buton = Icon(Icons
+                                                      .pause_circle_outline);
+                                                  play = true;
+                                                });
+                                              } else {
+                                                await audioPlayer.stop();
+                                                setState(() {
+                                                  buton = Icon(Icons
+                                                      .play_circle_outline);
+                                                  play = false;
+                                                });
+                                              }
                                             },
                                           ),
                                         ],
@@ -205,81 +227,39 @@ class _PlayerPointsState extends State<PlayerPoints> {
                             ),
                           ),
                           Container(
-                            margin: EdgeInsets.symmetric(horizontal: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                RaisedButton(
-                                  color: Colors.red,
-                                  onPressed: null,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        new BorderRadius.circular(18.0),
-                                  ),
-                                  child: Text(
-                                    'Mai multe melodii posibile',
-                                  ),
+                            margin: EdgeInsets.symmetric(horizontal: 130),
+                            child: RaisedButton(
+                              color: Color(0xFF558B2F),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: new BorderRadius.circular(18.0),
+                              ),
+                              onPressed: () {
+                                if (WordIndex().isOk() == true) {
+                                  WordIndex().generateRandom();
+                                  WordIndex().counterIncrease();
+                                  print(WordIndex().getCounter());
+                                  audioPlayer.stop();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => WordsPage()),
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Podium()),
+                                  );
+                                }
+                              },
+                              child: Text(
+                                WordIndex().isOk() == true
+                                    ? 'Next Round'
+                                    : "Finish",
+                                style: TextStyle(
+                                  color: Colors.white,
                                 ),
-                                RaisedButton(
-                                  color: Color(0xFF558B2F),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        new BorderRadius.circular(18.0),
-                                  ),
-                                  onPressed: () {
-                                    if (WordIndex().isOk() == true) {
-                                      WordIndex().generateRandom();
-                                      WordIndex().counterIncrease();
-                                      print(WordIndex().getCounter());
-
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => WordsPage()),
-                                      );
-                                    } else {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            contentPadding:
-                                                EdgeInsets.only(bottom: 10),
-                                            title: Text(
-                                              'Game OVER!',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontFamily: 'Rubik',
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            backgroundColor: Colors.blueGrey,
-                                            content: FlatButton(
-                                              onPressed: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          StartPage()),
-                                                );
-                                              },
-                                              child: Text(
-                                                  "Inapoi la pagina principala"),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    }
-                                  },
-                                  child: Text(
-                                    'Next round',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ],

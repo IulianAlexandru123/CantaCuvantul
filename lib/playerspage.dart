@@ -1,15 +1,13 @@
+import 'package:flutter/gestures.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:canta_cuvantul/backgroundGradient.dart';
 import 'package:canta_cuvantul/users.dart';
 import 'package:canta_cuvantul/wordspage.dart';
+import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:flutter/material.dart';
 
-import 'brainplayersgrid.dart';
-
-double ispressed1 = 0;
-double ispressed2 = 0;
-BrainPlayer _brainPlayer = BrainPlayer();
 int counter = 0;
+double visible = 0;
 String nume, caracter = '';
 List<bool> _validate = [false, false, false, false, false, false];
 List<Color> colors = [
@@ -106,6 +104,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                   onPressed: () {
                                     showDialog(
                                         context: context,
+                                        barrierDismissible: false,
                                         builder: (context) {
                                           return StatefulBuilder(
                                             builder: (context, setState) {
@@ -130,81 +129,27 @@ class _PlayerPageState extends State<PlayerPage> {
                                                       MainAxisSize.min,
                                                   children: <Widget>[
                                                     Container(
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: <Widget>[
-                                                          RaisedButton(
-                                                            highlightColor:
-                                                                Colors
-                                                                    .transparent,
-                                                            splashColor: Colors
-                                                                .transparent,
-                                                            focusColor: Colors
-                                                                .transparent,
-                                                            hoverColor:
-                                                                Colors.black,
-                                                            color: Colors
-                                                                .transparent,
-                                                            elevation:
-                                                                ispressed1,
-                                                            shape: RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            30.0)),
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                ispressed2 = 0;
-                                                                ispressed1 =
-                                                                    0.5;
-                                                                caracter =
-                                                                    'assets/bitmoji1.png';
-                                                              });
-                                                            },
-                                                            child: Image.asset(
-                                                              'assets/bitmoji1.png',
-                                                              width: 90,
-                                                              height: 90,
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 10),
-                                                          RaisedButton(
-                                                            shape: RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            30.0)),
-                                                            highlightColor:
-                                                                Colors
-                                                                    .transparent,
-                                                            splashColor: Colors
-                                                                .transparent,
-                                                            focusColor: Colors
-                                                                .transparent,
-                                                            hoverColor:
-                                                                Colors.black,
-                                                            color: Colors
-                                                                .transparent,
-                                                            elevation:
-                                                                ispressed2,
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                ispressed1 = 0;
-                                                                ispressed2 =
-                                                                    0.5;
-                                                                caracter =
-                                                                    'assets/bitmoji2.png';
-                                                              });
-                                                            },
-                                                            child: Image.asset(
-                                                              'assets/bitmoji2.png',
-                                                              width: 90,
-                                                              height: 90,
-                                                            ),
-                                                          ),
-                                                        ],
+                                                      height: 120,
+                                                      width: 300,
+                                                      child: Swiper(
+                                                        itemBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                int index) {
+                                                          return Characters(
+                                                            character:
+                                                                'assets/boy$index.png',
+                                                          );
+                                                        },
+                                                        itemCount: 4,
+                                                        onIndexChanged:
+                                                            (int index) {
+                                                          visible = 1;
+                                                          setState(() => caracter =
+                                                              'assets/boy$index.png');
+                                                        },
+                                                        viewportFraction: 0.6,
+                                                        scale: 0.7,
                                                       ),
                                                     ),
                                                     TextField(
@@ -263,8 +208,6 @@ class _PlayerPageState extends State<PlayerPage> {
                                                                       18.0),
                                                             ),
                                                             onPressed: () {
-                                                              ispressed2 = 0;
-                                                              ispressed1 = 0;
                                                               nume = '';
                                                               caracter = '';
                                                               Navigator.pop(
@@ -283,12 +226,12 @@ class _PlayerPageState extends State<PlayerPage> {
                                                           color: Colors.green,
                                                           onPressed: () {
                                                             if (caracter !=
+                                                                    'assets/boy0.png' &&
+                                                                caracter !=
                                                                     '' &&
                                                                 nume.length >=
                                                                     2) {
                                                               setState(() {
-                                                                ispressed2 = 0;
-                                                                ispressed1 = 0;
                                                                 colors[index] =
                                                                     Color(
                                                                         0xFF252525);
@@ -363,7 +306,7 @@ class _PlayerPageState extends State<PlayerPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -382,6 +325,7 @@ class _PlayerPageState extends State<PlayerPage> {
                             ),
                           ),
                           onPressed: () {
+                            counter = 0;
                             _validate = [
                               false,
                               false,
@@ -417,11 +361,33 @@ class _PlayerPageState extends State<PlayerPage> {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => WordsPage()),
-                            );
+                            if (counter < 2) {
+                              showSimpleNotification(
+                                  Text("Adauga minim 2 jucatori!"),
+                                  background: Colors.red);
+                            } else {
+                              _validate = [
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false
+                              ];
+                              colors = [
+                                Colors.transparent,
+                                Colors.transparent,
+                                Colors.transparent,
+                                Colors.transparent,
+                                Colors.transparent,
+                                Colors.transparent
+                              ];
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => WordsPage()),
+                              );
+                            }
                           },
                         ),
                       ],
@@ -437,16 +403,40 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 }
 
-/*
-Navigator.of(context)
-                                                              .overlay
-                                                              .insert(OverlayEntry(
-                                                                  builder:
-                                                                      (BuildContext
-                                                                          context) {
-                                                            return FunkyNotification();
-                                                          }));
-*/
+class Characters extends StatefulWidget {
+  final String character;
+
+  const Characters({
+    this.character,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _CharactersState createState() => _CharactersState();
+}
+
+class _CharactersState extends State<Characters> {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.transparent,
+      shadowColor: Colors.transparent,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(Icons.keyboard_arrow_left),
+          Image.asset(
+            widget.character,
+            width: 90,
+            height: 90,
+          ),
+          Icon(Icons.keyboard_arrow_right),
+        ],
+      ),
+    );
+  }
+}
+
 class FunkyNotification extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => FunkyNotificationState();
@@ -502,223 +492,3 @@ class FunkyNotificationState extends State<FunkyNotification>
     );
   }
 }
-/*
-Expanded(
-                child: GridView.count(
-                  primary: false,
-                  padding: const EdgeInsets.fromLTRB(40, 40, 40, 40),
-                  crossAxisSpacing: 45,
-                  // physics: new NeverScrollableScrollPhysics(),
-                  childAspectRatio: 0.8,
-                  mainAxisSpacing: 20,
-                  crossAxisCount: 2,
-                  // Generate 100 widgets that display their index in the List.
-                  children: List.generate(6, (index) {
-                    return Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(30.0),
-                        ),
-                        child: Opacity(
-                          opacity: _brainPlayer.card[index] ? 1 : 0.5,
-                          child: Container(
-                            //  padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Visibility(
-                                  visible: _brainPlayer.card[index],
-                                  child: new TextField(
-                                    textAlign: TextAlign.center,
-                                    //controller: _text,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontFamily: 'Josefin',
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    decoration: InputDecoration(
-                                      hintText: 'Nume Jucator',
-                                      contentPadding: EdgeInsets.all(0),
-                                      fillColor: Colors.white,
-                                      border: InputBorder.none,
-                                      hintStyle: TextStyle(
-                                        color: Colors.white30,
-                                      ),
-                                      errorText: _validate[index]
-                                          ? 'Minim 2 caractere'
-                                          : null,
-                                    ),
-                                    onChanged: (String str) {
-                                      setState(() {
-                                        useri[index].name = str;
-                                      });
-                                    },
-
-                                    onSubmitted: (String str) {
-                                      //if (_submited[index] == false) {
-                                      setState(() {
-                                        str.length <= 2
-                                            ? _validate[index] = true
-                                            : _validate[index] = false;
-                                        /*  userSave.name = str;
-                                        userSave.points = 0;
-                                        userSave.caracter = _setImage[index];
-                                        print(userSave.caracter);
-                                        sharedPref.save("$index", userSave);
-                                        counter++;
-                                        print(index);
-                                        */
-
-                                        useri.add(User(
-                                            name: str,
-                                            points: 0,
-                                            caracter: _setImage[index]));
-                                        //     _submited[index] = true;
-                                      });
-                                      // } else {
-                                      // userBrain.changeUser(str, index);
-                                      //  }
-                                    },
-                                  ),
-                                ),
-                                Visibility(
-                                  visible: _setImagestate[index],
-                                  child: Visibility(
-                                    visible: _brainPlayer.card[index],
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.add,
-                                        size: 80,
-                                        color: Colors.lightGreenAccent,
-                                      ),
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              contentPadding:
-                                                  EdgeInsets.only(bottom: 10),
-                                              title: Text(
-                                                'Alege caracterul',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontFamily: 'Josefin',
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              backgroundColor: Colors.blueGrey,
-                                              content: Container(
-                                                color: Colors.blueGrey,
-                                                width: 90,
-                                                height: 90,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: <Widget>[
-                                                    FlatButton(
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          _setImagestate[
-                                                              index] = false;
-                                                          _setImage[index] =
-                                                              'assets/bitmoji1.png';
-                                                          useri[index]
-                                                                  .caracter =
-                                                              _setImage[index];
-                                                        });
-                                                      },
-                                                      child: Image.asset(
-                                                        'assets/bitmoji1.png',
-                                                        width: 80,
-                                                        height: 80,
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      height: 100,
-                                                      width: 3,
-                                                      color: Colors.white,
-                                                    ),
-                                                    FlatButton(
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          _setImagestate[
-                                                              index] = false;
-                                                          _setImage[index] =
-                                                              'assets/bitmoji2.png';
-                                                          useri[index]
-                                                                  .caracter =
-                                                              _setImage[index];
-                                                        });
-                                                      },
-                                                      child: Image.asset(
-                                                        'assets/bitmoji2.png',
-                                                        width: 80,
-                                                        height: 80,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                Image.asset(
-                                  _setImage[index],
-                                  width: 70,
-                                  height: 70,
-                                ),
-                              ],
-                            ),
-                            color: Color(0xFF252525),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-
-*/
-/*    RaisedButton(
-                      color: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(18.0),
-                      ),
-                      child: Text(
-                        "Adauga jucator nou",
-                        style: TextStyle(
-                          fontFamily: 'Josefin',
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      disabledColor: Colors.grey,
-                      onPressed: () {
-                        setState(() {
-                          myIndex++;
-                          _brainPlayer.checkPos();
-                        });
-                      },
-                    ),*/
-/*// bool _validate = false;
-  List<bool> _validate = [false, false, false, false, false, false];
-  //List<bool> _submited = [false, false, false, false, false, false];
-  List<bool> _setImagestate = [true, true, true, true, true, true];
-  List<String> _setImage = ['', '', '', '', '', ''];
-  //int myIndex = 0;
-  bool isDisabled() {
-    if (_validate[myIndex] == false || _setImagestate[myIndex] == true)
-      return true;
-    else
-      return false;
-  }*/
